@@ -5,19 +5,13 @@ import java.util.ArrayList
 import java.util.Deque
 import java.util.HashMap
 
-
-
-
-
-
-
 /**
  * FileName: AhoCorasickMatcher
  * Author:   wsure
  * Date:     2021/4/7 3:10 下午
  * Description:
  */
-class AhoCorasickMatcher : AbstractMultipleExactStringMatcher {
+class AhoCorasickMatcherCopy : AbstractMultipleExactStringMatcher {
     override fun match(text: String, vararg patterns: String): List<MatchingResult> {
         require(patterns.isNotEmpty()) { "No patterns given." }
         val data: Automaton = constructACAutomaton(patterns.distinct())

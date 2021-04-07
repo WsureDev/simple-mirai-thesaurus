@@ -1,4 +1,4 @@
-package top.wsure.thesaurus.entity
+package top.wsure.thesaurus.ws.thesaurus.entity
 
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
@@ -6,7 +6,6 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.jodatime.CurrentDateTime
 import org.jetbrains.exposed.sql.jodatime.datetime
-import org.joda.time.DateTime
 
 class Global(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Global>(GlobalTable)

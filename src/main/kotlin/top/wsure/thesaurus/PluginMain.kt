@@ -1,13 +1,14 @@
 package top.wsure.thesaurus
 
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.contact.Member
 import net.mamoe.mirai.utils.info
-import top.wsure.thesaurus.data.Constant
-import top.wsure.thesaurus.entity.GlobalTable
-import top.wsure.thesaurus.utils.DBUtils
+import top.wsure.thesaurus.mirai.data.Constant
+import top.wsure.thesaurus.ws.thesaurus.utils.DBUtils
+import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcherCopy
 
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
@@ -38,6 +39,8 @@ fun showDeviceInfo(){
     PluginMain.logger.info{"os.name:${osName}"}
     PluginMain.logger.info{"os.arch:${osArch}"}
     PluginMain.logger.info{"os.version:${System.getProperty("os.version")}"}
+    PluginMain.logger.info{Json.encodeToString(AhoCorasickMatcherCopy().match("asdasdkasklzvwnzxkocajdla","asd","ajdl","o;cajd","zvw","asdasdkasklzvwnzxkocajdla"))}
+    PluginMain.logger.info{Json.encodeToString(AhoCorasickMatcherCopy().match("asdasdkasklzvwnzxkocajdla","asd","ajdl","ocajd","zvw"))}
 }
 
 fun initDatabase(){

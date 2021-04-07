@@ -1,13 +1,12 @@
-package top.wsure.thesaurus.utils
+package top.wsure.thesaurus.ws.thesaurus.utils
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import top.wsure.thesaurus.PluginMain
-import top.wsure.thesaurus.data.Constant
-import top.wsure.thesaurus.data.ThesaurusData
-import top.wsure.thesaurus.entity.GlobalTable
-import top.wsure.thesaurus.entity.GroupTable
-import top.wsure.thesaurus.entity.GroupsSettingTable
+import top.wsure.thesaurus.mirai.data.Constant
+import top.wsure.thesaurus.mirai.data.ThesaurusData
+import top.wsure.thesaurus.ws.thesaurus.entity.GlobalTable
+import top.wsure.thesaurus.ws.thesaurus.entity.GroupTable
+import top.wsure.thesaurus.ws.thesaurus.entity.GroupsSettingTable
 import java.io.File
 
 

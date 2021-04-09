@@ -8,9 +8,10 @@ import top.wsure.thesaurus.ws.thesaurus.entity.GlobalTable
 import top.wsure.thesaurus.ws.thesaurus.entity.Group
 import top.wsure.thesaurus.ws.thesaurus.enums.MessageType
 import top.wsure.thesaurus.ws.thesaurus.service.ThesaurusService
+import top.wsure.thesaurus.ws.thesaurus.utils.ac.AcNode
 
 class ThesaurusServiceImpl : ThesaurusService {
-    override fun globalCache(): List<Global> {
+    override fun globalCache(): AcNode<Global> {
         val questions : Set<String> = transaction {
             val query = GlobalTable
                 .slice( GlobalTable.question)

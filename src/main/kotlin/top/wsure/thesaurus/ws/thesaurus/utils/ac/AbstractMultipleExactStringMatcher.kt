@@ -8,13 +8,10 @@ package top.wsure.thesaurus.ws.thesaurus.utils.ac
  * Date:     2021/4/7 10:38 上午
  * Description:
  */
-interface AbstractMultipleExactStringMatcher {
-    fun match(text: String, vararg patterns: String): List<MatchingResult>
+interface AbstractMatcher<T> {
+    fun match(text: String,patterns: Collection<T>): List<MatchingResult<T>>
 
-    /**
-     * This class represents a match.
-     */
-    fun constructACAutomaton(patterns: List<String>): AhoCorasickMatcherCopy.Automaton
+    fun constructACAutomaton(patterns: Collection<T>): AcNode<T>
 
-    fun match(text: String,automaton: AhoCorasickMatcherCopy.Automaton): List<MatchingResult>
+    fun match(text: String,automaton: AcNode<T>): List<MatchingResult<T>>
 }

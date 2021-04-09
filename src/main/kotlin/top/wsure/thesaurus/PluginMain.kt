@@ -8,7 +8,7 @@ import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.utils.info
 import top.wsure.thesaurus.mirai.data.Constant
 import top.wsure.thesaurus.ws.thesaurus.utils.DBUtils
-import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcherCopy
+import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcher
 
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
@@ -39,8 +39,9 @@ fun showDeviceInfo(){
     PluginMain.logger.info{"os.name:${osName}"}
     PluginMain.logger.info{"os.arch:${osArch}"}
     PluginMain.logger.info{"os.version:${System.getProperty("os.version")}"}
-    PluginMain.logger.info{Json.encodeToString(AhoCorasickMatcherCopy().match("asdasdkasklzvwnzxkocajdla","asd","ajdl","o;cajd","zvw","asdasdkasklzvwnzxkocajdla"))}
-    PluginMain.logger.info{Json.encodeToString(AhoCorasickMatcherCopy().match("asdasdkasklzvwnzxkocajdla","asd","ajdl","ocajd","zvw"))}
+    val ac = AhoCorasickMatcher<String>{it}.match("a!bccab!!", arrayListOf("a","ab","bab","bc","bca","c","caa"))
+    PluginMain.logger.info{Json.encodeToString(ac) }
+
 }
 
 fun initDatabase(){

@@ -9,16 +9,16 @@ import kotlinx.serialization.Serializable
  * Description:
  */
 @Serializable
-data class MatchingResult(
+data class MatchingResult<T>(
     /**
      * The index of the pattern being matched.
      */
-    var patternIndex: Int,
+    var patternString: String,
     /**
      * The index of the last character in a pattern indexed by
      * `patternIndex`.
      */
-    var concludingIndex: Int,
+    var index: Int,
 
-    var pattern: String
+    var pattern: T
 )

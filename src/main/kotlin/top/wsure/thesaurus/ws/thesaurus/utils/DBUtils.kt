@@ -1,5 +1,8 @@
 package top.wsure.thesaurus.ws.thesaurus.utils
 
+import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.EntityClass
+import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import top.wsure.thesaurus.mirai.data.Constant
@@ -38,7 +41,6 @@ class DBUtils {
                 }
             }
         }
-
     }
 
 }

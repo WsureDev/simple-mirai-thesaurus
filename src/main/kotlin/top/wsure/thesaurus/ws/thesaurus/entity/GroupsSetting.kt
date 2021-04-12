@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.jodatime.CurrentDateTime
 import org.jetbrains.exposed.sql.jodatime.datetime
 
 class GroupsSetting(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<Global>(GlobalTable)
+    companion object : LongEntityClass<GroupsSetting>(GroupsSettingTable)
     var groupId by GroupsSettingTable.groupId
     var enable by GroupsSettingTable.enable
     var editorLevel by GroupsSettingTable.editorLevel

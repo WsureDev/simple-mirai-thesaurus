@@ -10,14 +10,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MatchingResult<T>(
-    /**
-     * The index of the pattern being matched.
-     */
+
     var patternString: String,
-    /**
-     * The index of the last character in a pattern indexed by
-     * `patternIndex`.
-     */
+
     var index: Int,
 
     var pattern: T

@@ -6,7 +6,7 @@ package top.wsure.thesaurus.ws.thesaurus.utils.ac
  * Date:     2021/4/9 10:19 上午
  * Description:
  */
-class AhoCorasickMatcher<T>(val getKey: (T) -> String):AbstractMatcher<T> {
+class AhoCorasickMatcher<T>(val getKey: (T) -> String) {
 
     private fun createTrie(root: AcNode<T>, wordList: MutableSet<T>): AcNode<T> {
 
@@ -71,19 +71,19 @@ class AhoCorasickMatcher<T>(val getKey: (T) -> String):AbstractMatcher<T> {
         return result
     }
 
-    override fun match(text: String, patterns: Collection<T>): List<MatchingResult<T>> {
+    fun match(text: String, patterns: Collection<T>): List<MatchingResult<T>> {
         val root = constructACAutomaton(patterns)
         return this.search(text,root)
     }
 
-    override fun constructACAutomaton(patterns: Collection<T>): AcNode<T> {
+    fun constructACAutomaton(patterns: Collection<T>): AcNode<T> {
         val root = AcNode<T>()
         this.createTrie(root, patterns.toMutableSet())
         this.createAutomaton(root)
         return root
     }
 
-    override fun match(text: String, automaton: AcNode<T>): List<MatchingResult<T>> {
+    fun match(text: String, automaton: AcNode<T>): List<MatchingResult<T>> {
         return this.search(text,automaton)
     }
 

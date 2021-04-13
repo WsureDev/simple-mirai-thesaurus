@@ -3,7 +3,7 @@ package top.wsure.thesaurus.mirai.utils
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.events.MessageEvent
-import net.mamoe.mirai.message.data.MessageChain.Companion.deserializeJsonToMessageChain
+import net.mamoe.mirai.message.code.MiraiCode.deserializeMiraiCode
 import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_AC_CACHE
 import top.wsure.thesaurus.mirai.data.Constant.GLOBAL_TAG
 import top.wsure.thesaurus.mirai.data.Constant.GROUPS_SETTINGS
@@ -77,7 +77,7 @@ class ThesaurusUtils {
             val words = THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.PRECISE))
             if(words.isNotEmpty()){
                 words.forEach {
-                    event.subject.sendMessage(it.answer.deserializeJsonToMessageChain())
+                    event.subject.sendMessage(it.answer.deserializeMiraiCode())
                 }
             } else {
                 val ac = AhoCorasickMatcher<String>{it}
@@ -87,7 +87,7 @@ class ThesaurusUtils {
                         .map { THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.FUZZY)) }
                         .flatten()
                         .forEach {
-                            event.subject.sendMessage(it.answer.deserializeJsonToMessageChain())
+                            event.subject.sendMessage(it.answer.deserializeMiraiCode())
                         }
                 }
             }

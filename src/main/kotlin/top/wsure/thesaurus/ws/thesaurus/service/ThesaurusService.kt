@@ -11,7 +11,7 @@ interface ThesaurusService {
 
     fun getGroupSettings():MutableMap<Long,Pair<Boolean,Int>>
 
-    fun queryThesaurus(groupId: Long, question:String):List<Word>
+    fun queryThesaurus(groupId: Long, word: Word):List<Word>
 
     fun addThesaurus(groupId: Long, word: Word,userId:Long)
 

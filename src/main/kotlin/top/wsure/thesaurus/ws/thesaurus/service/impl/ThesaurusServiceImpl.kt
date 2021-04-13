@@ -52,18 +52,20 @@ class ThesaurusServiceImpl : ThesaurusService {
         }
     }
 
-    override fun queryThesaurus(groupId: Long, question: String): List<Word> {
+    override fun queryThesaurus(groupId: Long,word: Word): List<Word> {
         return transaction{
             if(groupId == Constant.GLOBAL_TAG){
                 GlobalTable.select {
-                    GlobalTable.question eq question
+                    GlobalTable.question eq word.question
+                    GlobalTable.type eq word.type.type
                 }.map {
                     Word(it[GlobalTable.question],it[GlobalTable.question],it[GlobalTable.type])
                 }
             } else {
                 GroupTable.select {
                     GroupTable.groupId eq groupId
-                    GroupTable.question eq question
+                    GlobalTable.question eq word.question
+                    GlobalTable.type eq word.type.type
                 }.map {
                     Word(it[GroupTable.question],it[GroupTable.question],it[GroupTable.type])
                 }
@@ -97,11 +99,13 @@ class ThesaurusServiceImpl : ThesaurusService {
             if(groupId == Constant.GLOBAL_TAG){
                 Global.find {
                     GlobalTable.question eq word.question
+                    GlobalTable.type eq word.type.type
                 }.forEach { it.delete() }
             } else {
                 Group.find {
                     GroupTable.groupId eq groupId
-                    GroupTable.question eq word.question
+                    GlobalTable.question eq word.question
+                    GlobalTable.type eq word.type.type
                 }.forEach { it.delete() }
             }
         }

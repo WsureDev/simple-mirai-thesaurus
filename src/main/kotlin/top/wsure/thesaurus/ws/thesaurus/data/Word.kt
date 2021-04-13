@@ -8,4 +8,5 @@ data class Word(
     var type:MessageType,
 ){
     constructor(question:String,answer:String,type: Int):this(question,answer, MessageType.valueOf(type)!!)
+    constructor(question:String,type: MessageType):this(question,"", type)
 }

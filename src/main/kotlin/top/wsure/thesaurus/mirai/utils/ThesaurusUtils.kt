@@ -3,11 +3,15 @@ package top.wsure.thesaurus.mirai.utils
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.events.MessageEvent
-import top.wsure.thesaurus.mirai.data.Constant
-import top.wsure.thesaurus.mirai.data.Constant.GLOBAL_KEY
+import net.mamoe.mirai.message.data.MessageChain.Companion.deserializeJsonToMessageChain
+import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_AC_CACHE
+import top.wsure.thesaurus.mirai.data.Constant.GLOBAL_TAG
 import top.wsure.thesaurus.mirai.data.Constant.GROUPS_SETTINGS
 import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_SERVICE
+import top.wsure.thesaurus.ws.thesaurus.data.Word
+import top.wsure.thesaurus.ws.thesaurus.enums.MessageType
 import top.wsure.thesaurus.ws.thesaurus.utils.ac.AcNode
+import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcher
 
 /**
  * FileName: ThesaurusUtils
@@ -19,56 +23,74 @@ class ThesaurusUtils {
     companion object {
         fun createThesaurusCache(): MutableMap<String, AcNode<String>> {
             val cache = HashMap<String, AcNode<String>>()
-            cache[GLOBAL_KEY] = THESAURUS_SERVICE.globalCache()
+            cache["${GLOBAL_TAG}::"] = THESAURUS_SERVICE.globalCache()
             Bot.instances.flatMap { it.groups }.forEach {
                 cache["${it.id}::"] = THESAURUS_SERVICE.groupsCache(it.id)
             }
             return cache
         }
 
-        fun handleMessageEvent(event: MessageEvent) {
+        fun createGroupThesaurusCache(groupId: Long){
+            THESAURUS_AC_CACHE["${groupId}::"] = THESAURUS_SERVICE.groupsCache(groupId)
+        }
+        fun createGlobalThesaurusCache(){
+            THESAURUS_AC_CACHE["${GLOBAL_TAG}::"] = THESAURUS_SERVICE.globalCache()
+        }
+
+        suspend fun handleMessageEvent(event: MessageEvent) {
             when (event.subject) {
                 is Group -> {
                     val groupId = event.subject.id
-                    val settings = GROUPS_SETTINGS[groupId]
-                    if (settings == null) {
-                        //todo initGroupSetting
-                    } else {
-                        if (settings.first){
-                            handleGroupEvent(event, groupId)
-                            handleGlobalEvent(event)
-                        }
+                    if (enabled(groupId)) {
+                        sendMessage(event, groupId)
+                        sendMessage(event, GLOBAL_TAG)
                     }
                 }
                 is Member -> {
-                    handleGroupEvent(event, (event.subject as Member).group.id)
-                    handleGlobalEvent(event)
+                    val groupId = (event.subject as Member).group.id
+                    if(enabled(groupId)) {
+                        sendMessage(event, groupId)
+                    }
+                    sendMessage(event, GLOBAL_TAG)
                 }
                 is Friend,
                 is Stranger,
                 is OtherClient -> {
-                    handleGlobalEvent(event)
+                    sendMessage(event, GLOBAL_TAG)
                 }
             }
         }
 
-        fun enabled(groupId: Long):Boolean{
+        fun enabled(groupId: Long): Boolean {
             val settings = GROUPS_SETTINGS[groupId]
             return if (settings == null) {
                 THESAURUS_SERVICE.initGroupSetting(groupId)
-                GROUPS_SETTINGS[groupId] = Pair(false,1)
+                GROUPS_SETTINGS[groupId] = Pair(false, 1)
                 false
             } else {
                 settings.first
             }
         }
 
-        fun handleGlobalEvent(event: MessageEvent) {
-
-        }
-
-        fun handleGroupEvent(event: MessageEvent, groupId: Long) {
-
+        private suspend fun sendMessage(event: MessageEvent, groupId: Long) {
+            val msg = event.message.serializeToMiraiCode()
+            val words = THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.PRECISE))
+            if(words.isNotEmpty()){
+                words.forEach {
+                    event.subject.sendMessage(it.answer.deserializeJsonToMessageChain())
+                }
+            } else {
+                val ac = AhoCorasickMatcher<String>{it}
+                val cache = THESAURUS_AC_CACHE["${groupId}::"]
+                if(cache != null){
+                    ac.match(msg,cache)
+                        .map { THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.FUZZY)) }
+                        .flatten()
+                        .forEach {
+                            event.subject.sendMessage(it.answer.deserializeJsonToMessageChain())
+                        }
+                }
+            }
         }
     }
 }

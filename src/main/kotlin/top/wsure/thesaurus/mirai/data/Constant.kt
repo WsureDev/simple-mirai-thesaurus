@@ -1,5 +1,7 @@
 package top.wsure.thesaurus.mirai.data
 
+import net.mamoe.mirai.console.command.ConsoleCommandOwner.permissionId
+import net.mamoe.mirai.console.permission.PermissionService
 import top.wsure.thesaurus.PluginMain
 import top.wsure.thesaurus.mirai.utils.ThesaurusUtils
 import top.wsure.thesaurus.ws.thesaurus.data.Word
@@ -15,4 +17,8 @@ object Constant {
     val THESAURUS_AC_CACHE : MutableMap<String, AcNode<String>> by lazy { ThesaurusUtils.createThesaurusCache() }
     val GROUPS_SETTINGS : MutableMap<Long,Pair<Boolean,Int>> by lazy { THESAURUS_SERVICE.getGroupSettings() }
     val THESAURUS_OPTION_CACHE : MutableMap<String,Word> = HashMap()
+
+    val GLOBAL_EDITOR_PERMISSION by lazy {
+        PermissionService.INSTANCE.register(permissionId("词库管理员"),"词库管理员")
+    }
 }

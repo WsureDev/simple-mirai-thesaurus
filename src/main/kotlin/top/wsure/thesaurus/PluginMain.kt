@@ -3,18 +3,16 @@ package top.wsure.thesaurus
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.utils.info
-import org.jetbrains.exposed.sql.transactions.transaction
+import top.wsure.thesaurus.mirai.command.FuzzyCommand
+import top.wsure.thesaurus.mirai.command.PreciseCommand
 import top.wsure.thesaurus.mirai.data.Constant
 import top.wsure.thesaurus.mirai.utils.ThesaurusUtils
-import top.wsure.thesaurus.ws.thesaurus.data.Word
-import top.wsure.thesaurus.ws.thesaurus.entity.Global
-import top.wsure.thesaurus.ws.thesaurus.entity.GlobalTable
-import top.wsure.thesaurus.ws.thesaurus.enums.MessageType
 import top.wsure.thesaurus.ws.thesaurus.utils.DBUtils
 import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcher
 
@@ -35,15 +33,13 @@ object PluginMain : KotlinPlugin(
         showDeviceInfo()
         PluginMain.launch {
             initDatabase()
-
-            Constant.THESAURUS_SERVICE.addThesaurus(Constant.GLOBAL_TAG, Word("qqq","aaa",MessageType.PRECISE),844157922L)
-            transaction {
-                val globals:List<Global> =  Global.find { GlobalTable.question eq "qqq" }.distinct()
-                logger.info { globals.joinToString("\n") }
-            }
-
         }
-        globalEventChannel().subscribeAlways<MessageEvent> { ThesaurusUtils.handleMessageEvent(it) }
+        FuzzyCommand.register()
+        PreciseCommand.register()
+        globalEventChannel().subscribeAlways<MessageEvent> {
+            ThesaurusUtils.replayMessageHandler(it)
+            ThesaurusUtils.addQAHandler(it)
+        }
 
         logger.info { "Plugin loaded" }
     }

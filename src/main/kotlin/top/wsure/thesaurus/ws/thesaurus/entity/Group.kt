@@ -4,10 +4,8 @@ import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.jodatime.CurrentDateTime
 import org.jetbrains.exposed.sql.jodatime.datetime
-import top.wsure.thesaurus.ws.thesaurus.utils.DBUtils
 
 class Group(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Group>(GroupTable)

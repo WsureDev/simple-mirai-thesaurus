@@ -1,12 +1,18 @@
 package top.wsure.thesaurus.mirai.utils
 
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.command.CommandSender
+import net.mamoe.mirai.console.command.isUser
+import net.mamoe.mirai.console.permission.PermissionService.Companion.hasPermission
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.events.MessageEvent
 import net.mamoe.mirai.message.code.MiraiCode.deserializeMiraiCode
-import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_AC_CACHE
+import net.mamoe.mirai.message.data.MessageChain
+import top.wsure.thesaurus.mirai.data.Constant
 import top.wsure.thesaurus.mirai.data.Constant.GLOBAL_TAG
 import top.wsure.thesaurus.mirai.data.Constant.GROUPS_SETTINGS
+import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_AC_CACHE
+import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_OPTION_CACHE
 import top.wsure.thesaurus.mirai.data.Constant.THESAURUS_SERVICE
 import top.wsure.thesaurus.ws.thesaurus.data.Word
 import top.wsure.thesaurus.ws.thesaurus.enums.MessageType
@@ -37,7 +43,7 @@ class ThesaurusUtils {
             THESAURUS_AC_CACHE["${GLOBAL_TAG}::"] = THESAURUS_SERVICE.globalCache()
         }
 
-        suspend fun handleMessageEvent(event: MessageEvent) {
+        suspend fun replayMessageHandler(event: MessageEvent) {
             when (event.subject) {
                 is Group -> {
                     val groupId = event.subject.id
@@ -89,6 +95,84 @@ class ThesaurusUtils {
                         .forEach {
                             event.subject.sendMessage(it.answer.deserializeMiraiCode())
                         }
+                }
+            }
+        }
+
+        fun setQACache(args:MessageChain,messageType:MessageType,cacheKey:String,timeout:Long){
+            clearTimeOut()
+            THESAURUS_OPTION_CACHE[cacheKey] =
+                Word(args.serializeToMiraiCode(),(System.currentTimeMillis()+timeout).toString(),messageType)
+        }
+
+        fun getQACache(cacheKey:String):Word?{
+            clearTimeOut()
+            return THESAURUS_OPTION_CACHE[cacheKey]
+        }
+        fun removeQACache(cacheKey:String):Word?{
+            clearTimeOut()
+            return THESAURUS_OPTION_CACHE.remove(cacheKey)
+        }
+
+        private fun clearTimeOut(){
+            val now = System.currentTimeMillis()
+            THESAURUS_OPTION_CACHE.keys.stream()
+                .filter{ THESAURUS_OPTION_CACHE[it] != null && THESAURUS_OPTION_CACHE[it]!!.answer != "0" && now.toString() > THESAURUS_OPTION_CACHE[it]!!.answer }
+                .forEach { THESAURUS_OPTION_CACHE.remove(it) }
+        }
+
+        fun groupQAKey(member: Member):String{
+            return "group::${member.group.id}::${member.id}"
+        }
+        fun globalQAKey(userId: Long):String{
+            return "global::${userId}::"
+        }
+        suspend fun setAddQACacheOption(sender: CommandSender, chain: MessageChain, qaType: MessageType){
+            if(sender.isUser())
+                when(sender.subject){
+                    is Group ,
+                    is Member -> {
+                        val member = sender.user as Member
+                        enabled(member.group.id)
+                        if(member.permission.level >= GROUPS_SETTINGS[member.group.id]?.second ?: 1){
+                            setQACache(chain,qaType,groupQAKey(member),3*60000)
+                            sender.sendMessage("请发送${qaType.desc}回答，3分钟内有效")
+                        }
+                    }
+                    is Friend,
+                    is Stranger,
+                    is OtherClient -> {
+                        if(sender.hasPermission(Constant.GLOBAL_EDITOR_PERMISSION)){
+                            setQACache(chain,qaType,globalQAKey(sender.user.id),3*60000)
+                            sender.sendMessage("请发送${qaType.desc}的回答，3分钟内有效")
+                        }
+                    }
+                }
+        }
+
+        suspend fun addQAHandler(event: MessageEvent){
+            when(event.subject){
+                is Group ,
+                is Member ->{
+                    val member = event.sender as Member
+                    val qaCache = getQACache(groupQAKey(member))
+                    if(qaCache != null){
+                        qaCache.answer = event.message.serializeToMiraiCode()
+                        THESAURUS_SERVICE.addThesaurus(member.group.id,qaCache,member.id)
+                        removeQACache(groupQAKey(member))
+                        event.subject.sendMessage("回复已记录")
+                    }
+                }
+                is Friend,
+                is Stranger,
+                is OtherClient -> {
+                    val qaCache = getQACache(globalQAKey(event.sender.id))
+                    if(qaCache != null){
+                        qaCache.answer = event.message.serializeToMiraiCode()
+                        THESAURUS_SERVICE.addThesaurus(GLOBAL_TAG,qaCache,event.sender.id)
+                        removeQACache(globalQAKey(event.sender.id))
+                        event.subject.sendMessage("回复已记录")
+                    }
                 }
             }
         }

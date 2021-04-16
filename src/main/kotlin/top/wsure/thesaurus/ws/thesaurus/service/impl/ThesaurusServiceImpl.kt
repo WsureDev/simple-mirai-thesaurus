@@ -59,7 +59,7 @@ class ThesaurusServiceImpl : ThesaurusService {
                     GlobalTable.question eq word.question
                     GlobalTable.type eq word.type.type
                 }.map {
-                    Word(it[GlobalTable.question],it[GlobalTable.question],it[GlobalTable.type])
+                    Word(it[GlobalTable.question],it[GlobalTable.answer],it[GlobalTable.type])
                 }
             } else {
                 GroupTable.select {
@@ -67,7 +67,7 @@ class ThesaurusServiceImpl : ThesaurusService {
                     GlobalTable.question eq word.question
                     GlobalTable.type eq word.type.type
                 }.map {
-                    Word(it[GroupTable.question],it[GroupTable.question],it[GroupTable.type])
+                    Word(it[GroupTable.question],it[GroupTable.answer],it[GroupTable.type])
                 }
             }
         }

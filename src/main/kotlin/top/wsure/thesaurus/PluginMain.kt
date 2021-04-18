@@ -17,6 +17,7 @@ import top.wsure.thesaurus.mirai.command.FuzzyCommand
 import top.wsure.thesaurus.mirai.command.PreciseCommand
 import top.wsure.thesaurus.mirai.command.ThesaurusCommand
 import top.wsure.thesaurus.mirai.data.Constant
+import top.wsure.thesaurus.mirai.data.ThesaurusData
 import top.wsure.thesaurus.mirai.utils.ThesaurusUtils
 import top.wsure.thesaurus.ws.thesaurus.utils.DBUtils
 import top.wsure.thesaurus.ws.thesaurus.utils.ac.AhoCorasickMatcher
@@ -37,6 +38,7 @@ object PluginMain : KotlinPlugin(
     @ExperimentalCommandDescriptors
     @ConsoleExperimentalApi
     override fun onEnable() {
+        ThesaurusData.reload()
         showDeviceInfo()
         PluginMain.launch {
             initDatabase()

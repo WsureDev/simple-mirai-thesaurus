@@ -11,9 +11,9 @@ version = "0.0.1"
 
 repositories {
     mavenLocal()
-    maven("https://maven.aliyun.com/repository/public") // 阿里云国内代理仓库
     mavenCentral()
     jcenter()
+    maven ( url = "https://dl.bintray.com/kotlin/kotlin-eap" )
 }
 
 dependencies {

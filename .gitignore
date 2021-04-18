@@ -12,3 +12,5 @@ config/
 bots/
 
 device.json
+
+plugins/

@@ -1,8 +1,6 @@
 package top.wsure.thesaurus.ws.thesaurus.service.impl
 
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
 import top.wsure.thesaurus.mirai.data.Constant
@@ -31,8 +29,8 @@ class ThesaurusServiceImpl : ThesaurusService {
             val query = GroupTable
                 .slice(GroupTable.question)
                 .selectAll()
-                .andWhere { GroupTable.type eq MessageType.FUZZY.type  }
-                .andWhere { GroupTable.groupId eq groupId  }
+                .andWhere { GroupTable.type eq MessageType.FUZZY.type }
+                .andWhere { GroupTable.groupId eq groupId }
                 .distinct()
             query.map { it[GroupTable.question] }.toSet()
         }
@@ -40,42 +38,36 @@ class ThesaurusServiceImpl : ThesaurusService {
     }
 
     override fun getGroupSettings(): MutableMap<Long, Pair<Boolean, Int>> {
-        return transaction{
+        return transaction {
             val groupSettings = HashMap<Long, Pair<Boolean, Int>>()
             GroupsSettingTable
                 .selectAll()
                 .forEach {
                     groupSettings[it[GroupsSettingTable.groupId]] =
-                    Pair(it[GroupsSettingTable.enable],it[GroupsSettingTable.editorLevel])
+                        Pair(it[GroupsSettingTable.enable], it[GroupsSettingTable.editorLevel])
                 }
             groupSettings
         }
     }
 
-    override fun queryThesaurus(groupId: Long,word: Word): List<Word> {
-        return transaction{
-            if(groupId == Constant.GLOBAL_TAG){
-                GlobalTable.select {
-                    GlobalTable.question eq word.question
-                    GlobalTable.type eq word.type.type
-                }.map {
-                    Word(it[GlobalTable.question],it[GlobalTable.answer],it[GlobalTable.type])
-                }
+    override fun queryThesaurus(groupId: Long, word: Word): List<Word> {
+        return transaction {
+            if (groupId == Constant.GLOBAL_TAG) {
+                GlobalTable.select { GlobalTable.question eq word.question }
+                    .andWhere { GlobalTable.type eq word.type.type }
+                    .map { Word(it[GlobalTable.question], it[GlobalTable.answer], it[GlobalTable.type]) }
             } else {
-                GroupTable.select {
-                    GroupTable.groupId eq groupId
-                    GlobalTable.question eq word.question
-                    GlobalTable.type eq word.type.type
-                }.map {
-                    Word(it[GroupTable.question],it[GroupTable.answer],it[GroupTable.type])
-                }
+                GroupTable.select { GroupTable.groupId eq groupId }
+                    .andWhere { GroupTable.question eq word.question }
+                    .andWhere { GroupTable.type eq word.type.type }
+                    .map { Word(it[GroupTable.question], it[GroupTable.answer], it[GroupTable.type]) }
             }
         }
     }
 
-    override fun addThesaurus(groupId: Long, word: Word,userId:Long) {
-        return transaction{
-            if(groupId == Constant.GLOBAL_TAG){
+    override fun addThesaurus(groupId: Long, word: Word, userId: Long) {
+        return transaction {
+            if (groupId == Constant.GLOBAL_TAG) {
                 Global.new {
                     question = word.question
                     answer = word.answer
@@ -94,35 +86,46 @@ class ThesaurusServiceImpl : ThesaurusService {
         }
     }
 
-    override fun delThesaurus(groupId: Long, word: Word) {
-        transaction {
-            if(groupId == Constant.GLOBAL_TAG){
+    override fun delThesaurus(groupId: Long, word: Word):Int {
+        return transaction {
+            if (groupId == Constant.GLOBAL_TAG) {
                 Global.find {
-                    GlobalTable.question eq word.question
-                    GlobalTable.type eq word.type.type
-                }.forEach { it.delete() }
+                    Op.build { GlobalTable.question eq word.question }
+                        .and { GlobalTable.type eq word.type.type }
+                }.map { it.delete() }.count()
             } else {
                 Group.find {
-                    GroupTable.groupId eq groupId
-                    GlobalTable.question eq word.question
-                    GlobalTable.type eq word.type.type
-                }.forEach { it.delete() }
+                    Op.build { GroupTable.groupId eq groupId }
+                        .and { GroupTable.question eq word.question }
+                        .and { GroupTable.type eq word.type.type }
+                }.map { it.delete() }.count()
             }
         }
     }
 
-    override fun initGroupSetting(groupId: Long) {
+    override fun initGroupSetting(groupId: Long, enable: Boolean) {
         transaction {
             GroupsSetting.new {
                 this.groupId = groupId
-                enable = false
+                this.enable = enable
                 editorLevel = 1
                 createDate = DateTime.now()
             }
         }
     }
 
-    private fun createAcMatcher(collection:Collection<String>): AcNode<String> {
+    override fun setGroupSetting(groupId: Long, enable: Boolean) {
+        transaction {
+            val groupsSetting = GroupsSetting.find { GroupsSettingTable.groupId eq groupId }.firstOrNull()
+            if (groupsSetting == null) {
+                initGroupSetting(groupId, enable)
+            } else {
+                groupsSetting.enable = enable
+            }
+        }
+    }
+
+    private fun createAcMatcher(collection: Collection<String>): AcNode<String> {
         return AhoCorasickMatcher<String> { it }.constructACAutomaton(collection)
     }
 

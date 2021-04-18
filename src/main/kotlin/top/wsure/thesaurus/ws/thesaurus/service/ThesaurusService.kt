@@ -15,7 +15,9 @@ interface ThesaurusService {
 
     fun addThesaurus(groupId: Long, word: Word,userId:Long)
 
-    fun delThesaurus(groupId: Long, word: Word)
+    fun delThesaurus(groupId: Long, word: Word):Int
 
-    fun initGroupSetting(groupId: Long)
+    fun initGroupSetting(groupId: Long,enable: Boolean = false)
+
+    fun setGroupSetting(groupId: Long,enable:Boolean)
 }

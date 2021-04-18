@@ -57,12 +57,16 @@ class ThesaurusUtils {
                     if(enabled(groupId)) {
                         sendMessage(event, groupId)
                     }
-                    sendMessage(event, GLOBAL_TAG)
+                    if(enabled(GLOBAL_TAG)){
+                        sendMessage(event, GLOBAL_TAG)
+                    }
                 }
                 is Friend,
                 is Stranger,
                 is OtherClient -> {
-                    sendMessage(event, GLOBAL_TAG)
+                    if(enabled(GLOBAL_TAG)){
+                        sendMessage(event, GLOBAL_TAG)
+                    }
                 }
             }
         }
@@ -90,7 +94,7 @@ class ThesaurusUtils {
                 val cache = THESAURUS_AC_CACHE["${groupId}::"]
                 if(cache != null){
                     ac.match(msg,cache)
-                        .map { THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.FUZZY)) }
+                        .map { res -> THESAURUS_SERVICE.queryThesaurus(groupId, Word(res.pattern,MessageType.FUZZY)) }
                         .flatten()
                         .forEach {
                             event.subject.sendMessage(it.answer.deserializeMiraiCode())
@@ -128,26 +132,15 @@ class ThesaurusUtils {
             return "global::${userId}::"
         }
         suspend fun setAddQACacheOption(sender: CommandSender, chain: MessageChain, qaType: MessageType){
-            if(sender.isUser())
-                when(sender.subject){
-                    is Group ,
-                    is Member -> {
-                        val member = sender.user as Member
-                        enabled(member.group.id)
-                        if(member.permission.level >= GROUPS_SETTINGS[member.group.id]?.second ?: 1){
-                            setQACache(chain,qaType,groupQAKey(member),3*60000)
-                            sender.sendMessage("请发送${qaType.desc}回答，3分钟内有效")
-                        }
-                    }
-                    is Friend,
-                    is Stranger,
-                    is OtherClient -> {
-                        if(sender.hasPermission(Constant.GLOBAL_EDITOR_PERMISSION)){
-                            setQACache(chain,qaType,globalQAKey(sender.user.id),3*60000)
-                            sender.sendMessage("请发送${qaType.desc}的回答，3分钟内有效")
-                        }
-                    }
-                }
+            auth(sender,{
+                        member ->
+                setQACache(chain,qaType,groupQAKey(member),3*60000)
+                sender.sendMessage("请发送${qaType.desc}回答，3分钟内有效")
+            },{
+                user ->
+                setQACache(chain,qaType,globalQAKey(user.id),3*60000)
+                sender.sendMessage("请发送${qaType.desc}的回答，3分钟内有效")
+            },{})
         }
 
         suspend fun addQAHandler(event: MessageEvent){
@@ -160,6 +153,7 @@ class ThesaurusUtils {
                         qaCache.answer = event.message.serializeToMiraiCode()
                         THESAURUS_SERVICE.addThesaurus(member.group.id,qaCache,member.id)
                         removeQACache(groupQAKey(member))
+                        createGroupThesaurusCache(member.group.id)
                         event.subject.sendMessage("回复已记录")
                     }
                 }
@@ -171,9 +165,34 @@ class ThesaurusUtils {
                         qaCache.answer = event.message.serializeToMiraiCode()
                         THESAURUS_SERVICE.addThesaurus(GLOBAL_TAG,qaCache,event.sender.id)
                         removeQACache(globalQAKey(event.sender.id))
+                        createGlobalThesaurusCache()
                         event.subject.sendMessage("回复已记录")
                     }
                 }
+            }
+        }
+
+        suspend fun auth(sender: CommandSender, groupFun:suspend (member:Member)->Unit, globalFun:suspend (user:User)->Unit, consoleFun:suspend ()->Unit){
+            if(sender.isUser()){
+                when(sender.subject){
+                    is Group ,
+                    is Member -> {
+                        val member = sender.user as Member
+                        enabled(member.group.id)
+                        if(member.permission.level >= GROUPS_SETTINGS[member.group.id]?.second ?: 1){
+                            groupFun(member)
+                        }
+                    }
+                    is Friend,
+                    is Stranger,
+                    is OtherClient -> {
+                        if(sender.hasPermission(Constant.GLOBAL_EDITOR_PERMISSION)){
+                            globalFun(sender.user)
+                        }
+                    }
+                }
+            } else {
+                consoleFun()
             }
         }
     }

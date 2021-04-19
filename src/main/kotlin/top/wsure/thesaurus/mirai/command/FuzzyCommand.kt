@@ -13,19 +13,19 @@ import top.wsure.thesaurus.ws.thesaurus.enums.MessageType
  * FileName: Add
  * Author:   wsure
  * Date:     2021/4/12
- * Description: 
+ * Description:
  */
 @ConsoleExperimentalApi
-object FuzzyCommand:RawCommand(
-    PluginMain,"模糊问","模糊+","+模糊问","加模糊问",
-    description = "词库添加问题",usage = "模糊问 <关键词>    #添加模糊问的问题"
+object FuzzyCommand : RawCommand(
+    PluginMain, "模糊问", "模糊+", "+模糊问", "加模糊问",
+    description = "词库添加问题", usage = "模糊问 <关键词>    #添加模糊问的问题"
 ) {
 
     @ExperimentalCommandDescriptors
     override val prefixOptional = true
 
     override suspend fun CommandSender.onCommand(args: MessageChain) {
-        ThesaurusUtils.setAddQACacheOption(this,args,MessageType.FUZZY)
+        ThesaurusUtils.setAddQACacheOption(this, args, MessageType.FUZZY)
     }
 
 }

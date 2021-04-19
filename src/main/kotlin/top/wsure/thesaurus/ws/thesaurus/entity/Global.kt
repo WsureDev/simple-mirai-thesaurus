@@ -10,21 +10,20 @@ import org.jetbrains.exposed.sql.jodatime.datetime
 
 class Global(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Global>(GlobalTable)
+
     var question by GlobalTable.question
     var answer by GlobalTable.answer
     var type by GlobalTable.type
     var createDate by GlobalTable.createDate
     var createUser by GlobalTable.createUser
 
-    constructor(row:ResultRow):this(row[GlobalTable.id])
-
     override fun toString(): String {
         return "{" +
-            "question:\"${question}\","+
-        "answer:\"${answer}\","+
-        "type:\"${type}\","+
-        "createDate:\"${createDate}\","+
-        "createUser:\"${createUser}\""+
+            "question:\"${question}\"," +
+            "answer:\"${answer}\"," +
+            "type:\"${type}\"," +
+            "createDate:\"${createDate}\"," +
+            "createUser:\"${createUser}\"" +
             "}"
     }
 }

@@ -29,8 +29,8 @@ class DBUtils {
             )
         }
 
-        fun initTableIfNotExist(db:Database ) {
-            val tables = arrayListOf<Table>(GlobalTable,GroupTable,GroupsSettingTable)
+        fun initTableIfNotExist(db: Database) {
+            val tables = arrayListOf<Table>(GlobalTable, GroupTable, GroupsSettingTable)
             transaction(db) {
                 addLogger(StdOutSqlLogger)
                 tables.forEach {

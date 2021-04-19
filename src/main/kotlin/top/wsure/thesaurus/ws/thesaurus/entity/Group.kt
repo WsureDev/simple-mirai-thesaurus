@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.jodatime.datetime
 
 class Group(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<Group>(GroupTable)
+
     var groupId by GroupTable.groupId
     var question by GroupTable.question
     var answer by GroupTable.answer

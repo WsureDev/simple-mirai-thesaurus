@@ -29,9 +29,11 @@ object PluginMain : KotlinPlugin(
         version = "0.0.1"
     ) {
         author("WsureDev")
-        info("""
+        info(
+            """
             简易词库插件.
-        """.trimIndent())
+        """.trimIndent()
+        )
     }
 ) {
 
@@ -68,18 +70,19 @@ object PluginMain : KotlinPlugin(
     }
 }
 
-fun showDeviceInfo(){
+fun showDeviceInfo() {
     val osName = System.getProperty("os.name").split(" ")[0]
     val osArch = System.getProperty("os.arch")
-    PluginMain.logger.info{"os.name:${osName}"}
-    PluginMain.logger.info{"os.arch:${osArch}"}
-    PluginMain.logger.info{"os.version:${System.getProperty("os.version")}"}
-    val ac = AhoCorasickMatcher<String>{it}.match("a!bccab!!", arrayListOf("a","ab","bab","bc","bca","c","caa"))
-    PluginMain.logger.info{Json.encodeToString(ac) }
+    PluginMain.logger.info { "os.name:${osName}" }
+    PluginMain.logger.info { "os.arch:${osArch}" }
+    PluginMain.logger.info { "os.version:${System.getProperty("os.version")}" }
+    val ac =
+        AhoCorasickMatcher<String> { it }.match("a!bccab!!", arrayListOf("a", "ab", "bab", "bc", "bca", "c", "caa"))
+    PluginMain.logger.info { Json.encodeToString(ac) }
 
 }
 
-fun initDatabase(){
+fun initDatabase() {
     val db = DBUtils.getDatabase(Constant.databaseFile)
     DBUtils.initTableIfNotExist(db)
 }

@@ -10,9 +10,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AcNode<T>(
-    val children:MutableMap<Char,AcNode<T>> = HashMap(),
-    val value:Char? = null,
-    var fail:AcNode<T>? = null,
-    var key :T? = null,
-    var finished:Boolean = false
-    )
+    val children: MutableMap<Char, AcNode<T>> = HashMap(),
+    val value: Char? = null,
+    var fail: AcNode<T>? = null,
+    var key: T? = null,
+    var finished: Boolean = false
+)

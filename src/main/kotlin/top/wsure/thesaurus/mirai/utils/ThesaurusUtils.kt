@@ -36,10 +36,11 @@ class ThesaurusUtils {
             return cache
         }
 
-        fun createGroupThesaurusCache(groupId: Long){
+        fun createGroupThesaurusCache(groupId: Long) {
             THESAURUS_AC_CACHE["${groupId}::"] = THESAURUS_SERVICE.groupsCache(groupId)
         }
-        fun createGlobalThesaurusCache(){
+
+        fun createGlobalThesaurusCache() {
             THESAURUS_AC_CACHE["${GLOBAL_TAG}::"] = THESAURUS_SERVICE.globalCache()
         }
 
@@ -54,17 +55,17 @@ class ThesaurusUtils {
                 }
                 is Member -> {
                     val groupId = (event.subject as Member).group.id
-                    if(enabled(groupId)) {
+                    if (enabled(groupId)) {
                         sendMessage(event, groupId)
                     }
-                    if(enabled(GLOBAL_TAG)){
+                    if (enabled(GLOBAL_TAG)) {
                         sendMessage(event, GLOBAL_TAG)
                     }
                 }
                 is Friend,
                 is Stranger,
                 is OtherClient -> {
-                    if(enabled(GLOBAL_TAG)){
+                    if (enabled(GLOBAL_TAG)) {
                         sendMessage(event, GLOBAL_TAG)
                     }
                 }
@@ -84,17 +85,17 @@ class ThesaurusUtils {
 
         private suspend fun sendMessage(event: MessageEvent, groupId: Long) {
             val msg = event.message.serializeToMiraiCode()
-            val words = THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg,MessageType.PRECISE))
-            if(words.isNotEmpty()){
+            val words = THESAURUS_SERVICE.queryThesaurus(groupId, Word(msg, MessageType.PRECISE))
+            if (words.isNotEmpty()) {
                 words.forEach {
                     event.subject.sendMessage(it.answer.deserializeMiraiCode())
                 }
             } else {
-                val ac = AhoCorasickMatcher<String>{it}
+                val ac = AhoCorasickMatcher<String> { it }
                 val cache = THESAURUS_AC_CACHE["${groupId}::"]
-                if(cache != null){
-                    ac.match(msg,cache)
-                        .map { res -> THESAURUS_SERVICE.queryThesaurus(groupId, Word(res.pattern,MessageType.FUZZY)) }
+                if (cache != null) {
+                    ac.match(msg, cache)
+                        .map { res -> THESAURUS_SERVICE.queryThesaurus(groupId, Word(res.pattern, MessageType.FUZZY)) }
                         .flatten()
                         .forEach {
                             event.subject.sendMessage(it.answer.deserializeMiraiCode())
@@ -103,55 +104,56 @@ class ThesaurusUtils {
             }
         }
 
-        fun setQACache(args:MessageChain,messageType:MessageType,cacheKey:String,timeout:Long){
+        fun setQACache(args: MessageChain, messageType: MessageType, cacheKey: String, timeout: Long) {
             clearTimeOut()
             THESAURUS_OPTION_CACHE[cacheKey] =
-                Word(args.serializeToMiraiCode(),(System.currentTimeMillis()+timeout).toString(),messageType)
+                Word(args.serializeToMiraiCode(), (System.currentTimeMillis() + timeout).toString(), messageType)
         }
 
-        fun getQACache(cacheKey:String):Word?{
+        fun getQACache(cacheKey: String): Word? {
             clearTimeOut()
             return THESAURUS_OPTION_CACHE[cacheKey]
         }
-        fun removeQACache(cacheKey:String):Word?{
+
+        fun removeQACache(cacheKey: String): Word? {
             clearTimeOut()
             return THESAURUS_OPTION_CACHE.remove(cacheKey)
         }
 
-        private fun clearTimeOut(){
+        private fun clearTimeOut() {
             val now = System.currentTimeMillis()
             THESAURUS_OPTION_CACHE.keys.stream()
-                .filter{ THESAURUS_OPTION_CACHE[it] != null && THESAURUS_OPTION_CACHE[it]!!.answer != "0" && now.toString() > THESAURUS_OPTION_CACHE[it]!!.answer }
+                .filter { THESAURUS_OPTION_CACHE[it] != null && THESAURUS_OPTION_CACHE[it]!!.answer != "0" && now.toString() > THESAURUS_OPTION_CACHE[it]!!.answer }
                 .forEach { THESAURUS_OPTION_CACHE.remove(it) }
         }
 
-        fun groupQAKey(member: Member):String{
+        fun groupQAKey(member: Member): String {
             return "group::${member.group.id}::${member.id}"
         }
-        fun globalQAKey(userId: Long):String{
+
+        fun globalQAKey(userId: Long): String {
             return "global::${userId}::"
         }
-        suspend fun setAddQACacheOption(sender: CommandSender, chain: MessageChain, qaType: MessageType){
-            auth(sender,{
-                        member ->
-                setQACache(chain,qaType,groupQAKey(member),3*60000)
+
+        suspend fun setAddQACacheOption(sender: CommandSender, chain: MessageChain, qaType: MessageType) {
+            auth(sender, { member ->
+                setQACache(chain, qaType, groupQAKey(member), 3 * 60000)
                 sender.sendMessage("请发送${qaType.desc}回答，3分钟内有效")
-            },{
-                user ->
-                setQACache(chain,qaType,globalQAKey(user.id),3*60000)
+            }, { user ->
+                setQACache(chain, qaType, globalQAKey(user.id), 3 * 60000)
                 sender.sendMessage("请发送${qaType.desc}的回答，3分钟内有效")
-            },{})
+            }, {})
         }
 
-        suspend fun addQAHandler(event: MessageEvent){
-            when(event.subject){
-                is Group ,
-                is Member ->{
+        suspend fun addQAHandler(event: MessageEvent) {
+            when (event.subject) {
+                is Group,
+                is Member -> {
                     val member = event.sender as Member
                     val qaCache = getQACache(groupQAKey(member))
-                    if(qaCache != null){
+                    if (qaCache != null) {
                         qaCache.answer = event.message.serializeToMiraiCode()
-                        THESAURUS_SERVICE.addThesaurus(member.group.id,qaCache,member.id)
+                        THESAURUS_SERVICE.addThesaurus(member.group.id, qaCache, member.id)
                         removeQACache(groupQAKey(member))
                         createGroupThesaurusCache(member.group.id)
                         event.subject.sendMessage("回复已记录")
@@ -161,9 +163,9 @@ class ThesaurusUtils {
                 is Stranger,
                 is OtherClient -> {
                     val qaCache = getQACache(globalQAKey(event.sender.id))
-                    if(qaCache != null){
+                    if (qaCache != null) {
                         qaCache.answer = event.message.serializeToMiraiCode()
-                        THESAURUS_SERVICE.addThesaurus(GLOBAL_TAG,qaCache,event.sender.id)
+                        THESAURUS_SERVICE.addThesaurus(GLOBAL_TAG, qaCache, event.sender.id)
                         removeQACache(globalQAKey(event.sender.id))
                         createGlobalThesaurusCache()
                         event.subject.sendMessage("回复已记录")
@@ -172,21 +174,26 @@ class ThesaurusUtils {
             }
         }
 
-        suspend fun auth(sender: CommandSender, groupFun:suspend (member:Member)->Unit, globalFun:suspend (user:User)->Unit, consoleFun:suspend ()->Unit){
-            if(sender.isUser()){
-                when(sender.subject){
-                    is Group ,
+        suspend fun auth(
+            sender: CommandSender,
+            groupFun: suspend (member: Member) -> Unit,
+            globalFun: suspend (user: User) -> Unit,
+            consoleFun: suspend () -> Unit
+        ) {
+            if (sender.isUser()) {
+                when (sender.subject) {
+                    is Group,
                     is Member -> {
                         val member = sender.user as Member
                         enabled(member.group.id)
-                        if(member.permission.level >= GROUPS_SETTINGS[member.group.id]?.second ?: 1){
+                        if (member.permission.level >= GROUPS_SETTINGS[member.group.id]?.second ?: 1) {
                             groupFun(member)
                         }
                     }
                     is Friend,
                     is Stranger,
                     is OtherClient -> {
-                        if(sender.hasPermission(Constant.GLOBAL_EDITOR_PERMISSION)){
+                        if (sender.hasPermission(Constant.GLOBAL_EDITOR_PERMISSION)) {
                             globalFun(sender.user)
                         }
                     }

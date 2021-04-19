@@ -86,7 +86,7 @@ class ThesaurusServiceImpl : ThesaurusService {
         }
     }
 
-    override fun delThesaurus(groupId: Long, word: Word):Int {
+    override fun delThesaurus(groupId: Long, word: Word): Int {
         return transaction {
             if (groupId == Constant.GLOBAL_TAG) {
                 Global.find {

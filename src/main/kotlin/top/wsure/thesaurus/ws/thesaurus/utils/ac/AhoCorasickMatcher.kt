@@ -26,18 +26,18 @@ class AhoCorasickMatcher<T>(val getKey: (T) -> String) {
         return root
     }
 
-    private fun createAutomaton(root: AcNode<T>){
-        val deque:ArrayDeque<AcNode<T>> = ArrayDeque()
+    private fun createAutomaton(root: AcNode<T>) {
+        val deque: ArrayDeque<AcNode<T>> = ArrayDeque()
         deque.addLast(root)
-        while (deque.isNotEmpty()){
+        while (deque.isNotEmpty()) {
             val node = deque.removeFirst()
-            node.children.forEach{ (value, child) ->
-                if(node == root){
+            node.children.forEach { (value, child) ->
+                if (node == root) {
                     child.fail = root
                 } else {
                     val failNode = node.fail
                     val char = failNode?.children?.get(value)
-                    if(char != null){
+                    if (char != null) {
                         child.fail = char
                     } else {
                         child.fail = root
@@ -48,22 +48,22 @@ class AhoCorasickMatcher<T>(val getKey: (T) -> String) {
         }
     }
 
-    private fun search(text:String, root:AcNode<T>):MutableList<MatchingResult<T>>{
-        var node :AcNode<T>? = root
+    private fun search(text: String, root: AcNode<T>): MutableList<MatchingResult<T>> {
+        var node: AcNode<T>? = root
         val result = arrayListOf<MatchingResult<T>>()
-        text.toCharArray().forEachIndexed{ i,c ->
-            while (node != null && node!!.children[c] == null){
+        text.toCharArray().forEachIndexed { i, c ->
+            while (node != null && node!!.children[c] == null) {
                 node = node!!.fail
             }
-            if(node == null){
+            if (node == null) {
                 node = root
                 return@forEachIndexed
             }
             node = node!!.children[c]
             var out = node
-            while (out != null){
-                if(out.finished){
-                    result.add(MatchingResult(getKey(out.key!!),i,out.key!!))
+            while (out != null) {
+                if (out.finished) {
+                    result.add(MatchingResult(getKey(out.key!!), i, out.key!!))
                 }
                 out = out.fail
             }
@@ -73,7 +73,7 @@ class AhoCorasickMatcher<T>(val getKey: (T) -> String) {
 
     fun match(text: String, patterns: Collection<T>): List<MatchingResult<T>> {
         val root = constructACAutomaton(patterns)
-        return this.search(text,root)
+        return this.search(text, root)
     }
 
     fun constructACAutomaton(patterns: Collection<T>): AcNode<T> {
@@ -84,7 +84,7 @@ class AhoCorasickMatcher<T>(val getKey: (T) -> String) {
     }
 
     fun match(text: String, automaton: AcNode<T>): List<MatchingResult<T>> {
-        return this.search(text,automaton)
+        return this.search(text, automaton)
     }
 
 }
